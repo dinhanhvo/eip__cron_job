@@ -2,8 +2,8 @@ package com.voda.eip;
 
 import com.eip.data.model.MqttSubscribeModel;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.mqttv5.client.IMqttMessageListener;
+import org.eclipse.paho.mqttv5.common.MqttMessage;
 
 @Slf4j
 public  class MessageListener implements IMqttMessageListener {
