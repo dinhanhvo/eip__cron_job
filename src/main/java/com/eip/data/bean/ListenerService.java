@@ -18,8 +18,8 @@ public class ListenerService implements IMqttMessageListener {
 
     @Bean
     public  void loadCloudClient() {
-//        IMqttAsyncClient mqttClient = Mqtt.getInstanceIntenal();
-//        log.info("--------------- clientID: {}", mqttClient.getClientId());
+        IMqttAsyncClient mqttClient = Mqtt.getInstanceIntenal();
+        log.info("--------------- clientID: {}", mqttClient.getClientId());
 
         IMqttAsyncClient mqttClientCloud = Mqtt.getInstance();
         log.info("--------------- mqttClientCloud: {}", mqttClientCloud.getClientId());
@@ -43,7 +43,7 @@ public class ListenerService implements IMqttMessageListener {
 //    }
 
     @Override
-    public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+    public void messageArrived(String topic, MqttMessage mqttMessage)  {
 
         log.info("================== listen on: {}", topic);
 //        CanMqttMessage canMqttMessage = new CanMqttMessage();
@@ -51,8 +51,18 @@ public class ListenerService implements IMqttMessageListener {
 //        canMqttMessage.setQos(mqttMessage.getQos());
 //        canMqttMessage.setTopic(topic);
 //        mqttPublishModelRepository.save(canMqttMessage);
-        log.info("================== received: {}", mqttMessage);
-//        Mqtt.getInstance().publish(topic, mqttMessage);
-//        log.info("================== published: {}", mqttMessage);
+
+        try {
+            log.info("================== received: {}", mqttMessage);
+            Mqtt.getInstance().publish(topic, mqttMessage);
+            log.info("================== published: {}", mqttMessage);
+        } catch( MqttException me) {
+            log.info("reason "+me.getReasonCode());
+            log.info("msg "+me.getMessage());
+            log.info("loc "+me.getLocalizedMessage());
+            log.info("cause "+me.getCause());
+            log.info("excep "+me);
+            log.error(me.getMessage());
+        }
     }
 }

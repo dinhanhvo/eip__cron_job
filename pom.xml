@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.eip</groupId>
     <artifactId>cronjob</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>cronjob</name>
     <description>Sub internal and pub to cloud</description>
 

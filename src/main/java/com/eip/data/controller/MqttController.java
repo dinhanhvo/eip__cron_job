@@ -45,36 +45,25 @@ public class MqttController {
         MqttMessage mqttMessage = new MqttMessage(messagePublishModel.getMessage().getBytes());
         mqttMessage.setQos(messagePublishModel.getQos());
         mqttMessage.setRetained(messagePublishModel.getRetained());
-        Mqtt.getInstance().publish(messagePublishModel.getTopic(), mqttMessage);
+        Mqtt.getInstanceIntenal().publish(messagePublishModel.getTopic(), mqttMessage);
 
     }
 
-    @GetMapping("subscribe")
-    public List<MqttSubscribeModel> subscribeChannel(@RequestParam(value = "topic") String topic,
-                                                     @RequestParam(value = "wait_millis") Integer waitMillis)
-            throws InterruptedException {
-        List<MqttSubscribeModel> messages = new ArrayList<>();
-        CountDownLatch countDownLatch = new CountDownLatch(10);
-
-        IMqttAsyncClient mqttClient = Mqtt.getInstance();
-//        mqttClient.subscribeWithResponse(topic, (s, mqttMessage) -> {
-//            MqttSubscribeModel mqttSubscribeModel = new MqttSubscribeModel();
-//            mqttSubscribeModel.setId(mqttMessage.getId());
-//            mqttSubscribeModel.setMessage(new String(mqttMessage.getPayload()));
-//            mqttSubscribeModel.setQos(mqttMessage.getQos());
-//            messages.add(mqttSubscribeModel); // save to db
-//            countDownLatch.countDown();
-//
-//        });
-
-//        token.waitForCompletion();
-        countDownLatch.await(waitMillis, TimeUnit.MILLISECONDS);
-
-        return messages;
-    }
-
-    @GetMapping("eip/sub")
+    @GetMapping("internal/sub")
     public boolean subscribeEIP(@RequestParam(value = "topic") String topic) throws MqttException {
+
+        IMqttAsyncClient mqttClient = Mqtt.getInstanceIntenal();
+        log.info("--------------- clientID: {}, subscribed on topic {}", mqttClient.getClientId(), topic);
+
+        MqttProperties props = new MqttProperties();
+        props.setSubscriptionIdentifiers(Arrays.asList(new Integer[] { 0 }));
+        mqttClient.subscribe(new MqttSubscription(topic, 2), null, null, listenerService, props);
+
+        return true;
+    }
+
+    @GetMapping("cloud/sub")
+    public boolean cloudSubscribeEIP(@RequestParam(value = "topic") String topic) throws MqttException {
 
         IMqttAsyncClient mqttClient = Mqtt.getInstance();
         log.info("--------------- clientID: {}, subscribed on topic {}", mqttClient.getClientId(), topic);
