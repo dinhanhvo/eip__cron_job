@@ -18,7 +18,7 @@ public class ListenerService implements IMqttMessageListener {
 
     @Bean
     public  void loadCloudClient() {
-        IMqttAsyncClient mqttClient = Mqtt.getInstanceIntenal();
+        IMqttAsyncClient mqttClient = Mqtt.getInstanceInternal();
         log.info("--------------- clientID: {}", mqttClient.getClientId());
 
         IMqttAsyncClient mqttClientCloud = Mqtt.getInstance();
@@ -27,25 +27,10 @@ public class ListenerService implements IMqttMessageListener {
 
     }
 
-//    @Override
-//    public void messageArrived(String topic, MqttMessage mqttMessage) throws MqttException {
-//
-//        log.info("================== listen on: {}", topic);
-////        CanMqttMessage canMqttMessage = new CanMqttMessage();
-////        canMqttMessage.setMessage(new String(mqttMessage.getPayload()));
-////        canMqttMessage.setQos(mqttMessage.getQos());
-////        canMqttMessage.setTopic(topic);
-////        mqttPublishModelRepository.save(canMqttMessage);
-//        log.info("================== received: {}", mqttMessage);
-//        Mqtt.getInstance().publish(topic, mqttMessage);
-//        log.info("================== published: {}", mqttMessage);
-//
-//    }
-
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage)  {
 
-        log.info("================== listen on: {}", topic);
+//        log.info("================== listen on: {}", topic);
 //        CanMqttMessage canMqttMessage = new CanMqttMessage();
 //        canMqttMessage.setMessage(new String(mqttMessage.getPayload()));
 //        canMqttMessage.setQos(mqttMessage.getQos());
@@ -53,9 +38,16 @@ public class ListenerService implements IMqttMessageListener {
 //        mqttPublishModelRepository.save(canMqttMessage);
 
         try {
-            log.info("================== received: {}", mqttMessage);
-            Mqtt.getInstance().publish(topic, mqttMessage);
-            log.info("================== published: {}", mqttMessage);
+            log.info("================== received: {} on topic {}", mqttMessage, topic);
+            if (topic.startsWith("response/")) {
+                log.info("Cloud has received the msg, should store it: {}", mqttMessage);
+            } else if (topic.equalsIgnoreCase("ThuMuaSua")){
+                Mqtt.controlPublish(Mqtt.getInstance(), topic, mqttMessage);
+                log.info("================== published: {}", mqttMessage);
+                // listen the response
+                Mqtt.controlSubscribe(Mqtt.getInstance(), "response/" + topic, this);
+            }
+
         } catch( MqttException me) {
             log.info("reason "+me.getReasonCode());
             log.info("msg "+me.getMessage());
