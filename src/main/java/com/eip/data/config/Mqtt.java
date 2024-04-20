@@ -1,7 +1,7 @@
 package com.eip.data.config;
 
 
-import com.eip.data.bean.ListenerService;
+import com.eip.data.bean.BridgerService;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
 import org.eclipse.paho.mqttv5.client.IMqttToken;
@@ -103,10 +103,10 @@ public class Mqtt {
         }
     }
 
-    public static void controlSubscribe(IMqttAsyncClient mqttClient, String topic, ListenerService listenerService) throws MqttException {
+    public static void controlSubscribe(IMqttAsyncClient mqttClient, String topic, BridgerService bridgerService) throws MqttException {
         MqttProperties props = new MqttProperties();
         props.setSubscriptionIdentifiers(Arrays.asList(new Integer[] { 0 }));
-        mqttClient.subscribe(new MqttSubscription(topic, 2), null, null, listenerService, props);
+        mqttClient.subscribe(new MqttSubscription(topic, 2), null, null, bridgerService, props);
 
     }
 

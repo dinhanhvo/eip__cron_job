@@ -1,6 +1,6 @@
 package com.eip.data.controller;
 
-import com.eip.data.bean.ListenerService;
+import com.eip.data.bean.BridgerService;
 import com.eip.data.config.Mqtt;
 import com.eip.data.model.MqttPublishModel;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import javax.validation.Valid;
 public class MqttController {
 
     @Autowired
-    ListenerService listenerService;
+    BridgerService bridgerService;
 
     @PostMapping("cloud/publish")
     public void cloudPublishMessage(@RequestBody @Valid MqttPublishModel messagePublishModel) throws MqttException {
@@ -47,7 +47,7 @@ public class MqttController {
         IMqttAsyncClient mqttClient = Mqtt.getInstanceInternal();
         log.info("--------------- clientID: {}, subscribed on topic {}", mqttClient.getClientId(), topic);
 
-        Mqtt.controlSubscribe(mqttClient, topic, listenerService);
+        Mqtt.controlSubscribe(mqttClient, topic, bridgerService);
 
         return true;
     }
@@ -58,7 +58,7 @@ public class MqttController {
         IMqttAsyncClient mqttClient = Mqtt.getInstance();
         log.info("--------------- clientID: {}, subscribed on topic {}", mqttClient.getClientId(), topic);
 
-        Mqtt.controlSubscribe(mqttClient, topic, listenerService);
+        Mqtt.controlSubscribe(mqttClient, topic, bridgerService);
         return true;
     }
 
