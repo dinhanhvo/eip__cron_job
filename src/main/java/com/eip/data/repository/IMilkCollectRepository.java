@@ -12,5 +12,4 @@ public interface IMilkCollectRepository extends JpaRepository<MilkCollect, Long>
     List<MilkCollect> findByMqttStatus(String mqttStatus);
 
 
-
 }

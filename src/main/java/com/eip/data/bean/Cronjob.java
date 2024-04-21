@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -36,26 +37,21 @@ public class Cronjob {
             return;
         }
         MilkCollect msg = milkCollects.get(0);
-//        milkCollects.forEach(msg -> {
-            try {
-                String sTopic = "response/" +msg.getId()+ "/ThuMuaSua";
-                Mqtt.controlSubscribe(Mqtt.getCloudInstance(), sTopic, bridgerService);
-                log.info("----------- subscribed on {}", sTopic);
+        try {
+            String sTopic = "response/" +msg.getId()+ "/ThuMuaSua";
+            Mqtt.controlSubscribe(Mqtt.getCloudInstance(), sTopic, bridgerService);
+            log.info("----------- subscribed on {}", sTopic);
 
-//                TimeUnit.MILLISECONDS.sleep(100);
-
-                MqttMessage mqttMessage = new MqttMessage();
-                String json = Converter.getObjectMapper().writeValueAsString(msg);
-                mqttMessage.setPayload(json.getBytes(StandardCharsets.UTF_8));
-                Mqtt.controlPublish(Mqtt.getCloudInstance(), "ThuMuaSua", mqttMessage);
-                log.info("--------- published {} to cloud {}", msg.getId(), sTopic);
+            MqttMessage mqttMessage = new MqttMessage();
+            String json = Converter.getObjectMapper().writeValueAsString(msg);
+            mqttMessage.setPayload(json.getBytes(StandardCharsets.UTF_8));
+            Mqtt.controlPublish(Mqtt.getCloudInstance(), "ThuMuaSua", mqttMessage);
+            log.info("--------- published {} to cloud {}", msg.getId(), sTopic);
 //                TimeUnit.MILLISECONDS.sleep(600);
-            } catch (JsonProcessingException | MqttException e) {
-                log.error(e.getMessage());
-                throw new RuntimeException(e);
-            }
-
-//        });
+        } catch (JsonProcessingException | MqttException e) {
+            log.error(e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     public void scheduleTaskWithFixedDelay() {

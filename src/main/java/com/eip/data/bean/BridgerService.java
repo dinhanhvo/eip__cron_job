@@ -1,5 +1,6 @@
 package com.eip.data.bean;
 
+import com.eip.data.Constant.Constant;
 import com.eip.data.config.Mqtt;
 import com.eip.data.entity.MilkCollect;
 import com.eip.data.service.MilkCollectService;
@@ -47,19 +48,11 @@ public class BridgerService implements IMqttMessageListener {
     @Override
     public synchronized void messageArrived(String topic, MqttMessage mqttMessage)  {
 
-//        log.info("================== listen on: {}", topic);
-//        CanMqttMessage canMqttMessage = new CanMqttMessage();
-//        canMqttMessage.setMessage(new String(mqttMessage.getPayload()));
-//        canMqttMessage.setQos(mqttMessage.getQos());
-//        canMqttMessage.setTopic(topic);
-//        mqttPublishModelRepository.save(canMqttMessage);
-
         Instant start = Instant.now();
         try {
             log.info("=====1============= received: {} on topic {}", mqttMessage, topic);
 
-// CODE HERE
-            if (topic.startsWith("response/")) {
+            if (topic.startsWith(Constant.TOPIC_RESPONSE_PRE)) {
                 MilkCollect milkCollect = Converter.objectMapper.readValue(new String(mqttMessage.getPayload()), MilkCollect.class);
                 Long id = milkCollect.getId();
                 log.info("====3============ Cloud has received the id ---{}---", id);
@@ -67,7 +60,7 @@ public class BridgerService implements IMqttMessageListener {
                 MilkCollect milkCollectUpdate = milkCollectService.getMilkCollectById(id);
                 log.info("====4============ search from db ---{}---", milkCollectUpdate);
                 if (milkCollectUpdate != null) {
-                    milkCollectService.updateStatusMilkCollectById(id, "Completed");
+                    milkCollectService.updateStatusMilkCollectById(id, Constant.COMPLETED);
                     log.info("====5============ Saved ---{}---", milkCollectUpdate);
                     Mqtt.controlUnSubscribe(Mqtt.getCloudInstance(), topic);
                     log.info("====6============ Unsubscribe ---{}---", topic);
@@ -86,14 +79,10 @@ public class BridgerService implements IMqttMessageListener {
                 if (id == null) {
                     return;
                 }
-                String stopic = "response/" + id + "/" + topic;
+                String stopic = Constant.TOPIC_RESPONSE_PRE + id + Constant.SPLASH + topic;
                 // listen the response
                 Mqtt.controlSubscribe(Mqtt.getCloudInstance(), stopic, this);
-//                log.info("====5============== subscribed on : {}", stopic);
-//
-//                log.info("====51============== msg id: {}", id);
                 String json = Converter.getObjectMapper().writeValueAsString(milkCollect);
-//                log.info("====52============== msg json: {}", json);
                 mqttMessage.setPayload(json.getBytes(StandardCharsets.UTF_8));
 
                 Mqtt.controlPublish(Mqtt.getCloudInstance(), topic, mqttMessage);
