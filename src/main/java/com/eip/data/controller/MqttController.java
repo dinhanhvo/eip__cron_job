@@ -27,7 +27,7 @@ public class MqttController {
         mqttMessage.setQos(messagePublishModel.getQos());
         mqttMessage.setRetained(messagePublishModel.getRetained());
 
-        Mqtt.getInstance().publish(messagePublishModel.getTopic(), mqttMessage);
+        Mqtt.getCloudInstance().publish(messagePublishModel.getTopic(), mqttMessage);
 
     }
 
@@ -55,7 +55,7 @@ public class MqttController {
     @GetMapping("cloud/sub")
     public boolean cloudSubscribeEIP(@RequestParam(value = "topic") String topic) throws MqttException {
 
-        IMqttAsyncClient mqttClient = Mqtt.getInstance();
+        IMqttAsyncClient mqttClient = Mqtt.getCloudInstance();
         log.info("--------------- clientID: {}, subscribed on topic {}", mqttClient.getClientId(), topic);
 
         Mqtt.controlSubscribe(mqttClient, topic, bridgerService);

@@ -25,7 +25,7 @@ public class Mqtt {
     private static final String MQTT_LOCAL_SERVER_ADDRES= "tcp://192.168.1.14:1883";
     private static IMqttAsyncClient instanceInternal;
 
-    private static IMqttAsyncClient instance;
+    private static IMqttAsyncClient cloudInstance;
 
     public static IMqttAsyncClient getInstanceInternal() {
 
@@ -56,19 +56,19 @@ public class Mqtt {
         return instanceInternal;
     }
 
-    public static IMqttAsyncClient getInstance() {
+    public static IMqttAsyncClient getCloudInstance() {
 
         MemoryPersistence persistence = new MemoryPersistence();
 
         try {
-            if (instance == null) {
-                instance = new MqttAsyncClient(MQTT_CLOUD_SERVER_ADDRES, MQTT_PUB_ID, persistence);
+            if (cloudInstance == null) {
+                cloudInstance = new MqttAsyncClient(MQTT_CLOUD_SERVER_ADDRES, MQTT_PUB_ID, persistence);
 
                 MqttConnectionOptions connOpts = new MqttConnectionOptions();
                 connOpts.setCleanStart(false);
 
                 log.info("Connecting to broker: " + MQTT_CLOUD_SERVER_ADDRES);
-                IMqttToken token = instance.connect(connOpts);
+                IMqttToken token = cloudInstance.connect(connOpts);
                 token.waitForCompletion();
                 log.info("Connected");
 
@@ -84,9 +84,15 @@ public class Mqtt {
             log.info("excep :"+e);
         }
 
-        return instance;
+        return cloudInstance;
     }
 
+    public static void restart() {
+        instanceInternal = null;
+        cloudInstance = null;
+        getCloudInstance();
+        getInstanceInternal();
+    }
     public static void controlPublish(IMqttAsyncClient mqttClient, String topic, MqttMessage mqttMessage) {
         try {
             log.info("================== received: {}", mqttMessage);
@@ -104,11 +110,17 @@ public class Mqtt {
     }
 
     public static void controlSubscribe(IMqttAsyncClient mqttClient, String topic, BridgerService bridgerService) throws MqttException {
+
         MqttProperties props = new MqttProperties();
         props.setSubscriptionIdentifiers(Arrays.asList(new Integer[] { 0 }));
         mqttClient.subscribe(new MqttSubscription(topic, 2), null, null, bridgerService, props);
 
     }
+
+    public static void controlUnSubscribe(IMqttAsyncClient mqttClient, String topic) throws MqttException {
+        mqttClient.unsubscribe(topic);
+    }
+
 
     private Mqtt() {
 

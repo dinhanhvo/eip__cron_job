@@ -18,4 +18,22 @@ public class MilkCollectService {
     public List<MilkCollect> getMilkCollects() {
         return  milkCollectRepository.findAll();
     }
+
+    public MilkCollect getMilkCollectById(Long id) {
+        return  milkCollectRepository.findById(id).orElse(null);
+    }
+
+    public List<MilkCollect> getMilkCollectsByStatus(String status) {
+        List<MilkCollect> mls = milkCollectRepository.findByMqttStatus(status);
+        return  milkCollectRepository.findAll();
+    }
+
+    public MilkCollect updateStatusMilkCollectById(Long id, String status) {
+        MilkCollect milkCollect = milkCollectRepository.findById(id).orElse(null);
+        if (milkCollect != null) {
+            milkCollect.setMqttStatus(status);
+            milkCollectRepository.save(milkCollect);
+        }
+        return  milkCollect;
+    }
 }

@@ -1,15 +1,20 @@
 package com.eip.data.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serializable;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 
 /**
  *
- * SELECT TOP (10) [ID_Number]
+ * SELECT TOP (10)
+ *        [id]
  *       ,[Serial_Weigher]
  *       ,[Code_Seller]
  *       ,[Name_Seller]
@@ -18,15 +23,16 @@ import java.time.ZonedDateTime;
  *       ,[Tank_Gross_Weight] real
  *       ,[Tank_Net_Weight] real
  *       ,[Mqtt_Status]
- *       ,[DateTime_info]
- *   FROM [CNHS_CheckWeigher].[dbo].[TB_MilkCollect]
+ *       ,[created]
+ *   FROM [CNHS_CheckWeigher].[dbo].[milk_collect]
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "milk_collect")
-public class MilkCollect {
+public class MilkCollect implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -58,4 +64,23 @@ public class MilkCollect {
     @Column(name = "created")
     private ZonedDateTime createdAt;
 
+//    @UpdateTimestamp
+//    private Instant lastUpdatedAt;
+
+
+    @Override
+    public String toString() {
+        return "MilkCollect{" +
+                "id=" + id +
+                ", serialWeigher='" + serialWeigher + '\'' +
+                ", codeSeller='" + codeSeller + '\'' +
+                ", nameSeller='" + nameSeller + '\'' +
+                ", codeTankSeller='" + codeTankSeller + '\'' +
+                ", tankTareWeight=" + tankTareWeight +
+                ", tankGrossWeight=" + tankGrossWeight +
+                ", tankNetWeght=" + tankNetWeght +
+                ", mqttStatus='" + mqttStatus + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }
