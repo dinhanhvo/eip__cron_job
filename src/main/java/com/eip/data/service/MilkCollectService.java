@@ -24,8 +24,7 @@ public class MilkCollectService {
     }
 
     public List<MilkCollect> getMilkCollectsByStatus(String status) {
-        List<MilkCollect> mls = milkCollectRepository.findByMqttStatus(status);
-        return  milkCollectRepository.findAll();
+        return milkCollectRepository.findByMqttStatus(status);
     }
 
     public MilkCollect updateStatusMilkCollectById(Long id, String status) {

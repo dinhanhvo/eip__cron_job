@@ -75,13 +75,8 @@ public class BridgerService implements IMqttMessageListener {
                     log.info(" Could not find the message id: {}", id);
                 }
             } else  { // if (topic.equalsIgnoreCase("ThuMuaSua"))
-
 //                MilkCollect milkCollect = Converter.getObjectMapper().readValue(new String(mqttMessage.getPayload()), MilkCollect.class);
                 MilkCollect milkCollect = Converter.messageToDTO(new String(mqttMessage.getPayload()));
-
-//                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("UTC"));
-//                assert milkCollect != null;
-//                milkCollect.setCreatedAt(milkCollect.getCreatedAt());
 
                 log.info("====4============== received: {} on topic {}", mqttMessage, topic);
                 if (milkCollect == null) {
@@ -118,10 +113,12 @@ public class BridgerService implements IMqttMessageListener {
 
         } catch (JsonMappingException | JsonParseException e) {
             log.info("====8============");
+            log.error(e.getMessage());
             Mqtt.restart();
             throw new RuntimeException(e);
         } catch (IOException e) {
             log.info("====9============");
+            log.error(e.getMessage());
             Mqtt.restart();
             throw new RuntimeException(e);
         } finally {
