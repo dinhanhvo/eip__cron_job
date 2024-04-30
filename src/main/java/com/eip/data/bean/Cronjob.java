@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -42,11 +45,14 @@ public class Cronjob {
             Mqtt.controlSubscribe(Mqtt.getCloudInstance(), sTopic, bridgerService);
             log.info("----------- subscribed on {}", sTopic);
 
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("UTC"));
+            msg.setCreatedAt(ZonedDateTime.parse(msg.getCreatedAt().format(formatter), formatter));
+
             MqttMessage mqttMessage = new MqttMessage();
             String json = Converter.getObjectMapper().writeValueAsString(msg);
             mqttMessage.setPayload(json.getBytes(StandardCharsets.UTF_8));
             Mqtt.controlPublish(Mqtt.getCloudInstance(), "ThuMuaSua", mqttMessage);
-            log.info("--------- published {} to cloud {}", msg.getId(), sTopic);
+            log.info("--------- published {} to cloud {}", mqttMessage.getPayload().toString(), sTopic);
 //                TimeUnit.MILLISECONDS.sleep(600);
         } catch (JsonProcessingException | MqttException e) {
             log.error(e.getMessage());

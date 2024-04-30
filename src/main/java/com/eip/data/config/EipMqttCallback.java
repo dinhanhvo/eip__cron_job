@@ -1,19 +1,21 @@
-package com.eip.data.bean;
+package com.eip.data.config;
 
 import com.eip.data.Constant.Constant;
-import com.eip.data.config.Mqtt;
 import com.eip.data.entity.MilkCollect;
+import com.eip.data.repository.IMilkCollectRepository;
 import com.eip.data.service.MilkCollectService;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.voda.eip.Converter;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.paho.mqttv5.client.IMqttAsyncClient;
-import org.eclipse.paho.mqttv5.client.IMqttMessageListener;
+import org.eclipse.paho.mqttv5.client.IMqttToken;
+import org.eclipse.paho.mqttv5.client.MqttCallback;
+import org.eclipse.paho.mqttv5.client.MqttDisconnectResponse;
 import org.eclipse.paho.mqttv5.common.MqttException;
 import org.eclipse.paho.mqttv5.common.MqttMessage;
+import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,22 +25,19 @@ import java.time.Instant;
 
 @Slf4j
 @Service
-public class BridgerService implements IMqttMessageListener {
-
-//    @Autowired
-//    IMqttPublishModelRepository mqttPublishModelRepository;
+public class EipMqttCallback implements MqttCallback {
 
     @Autowired
     MilkCollectService milkCollectService;
 
-    @Bean
-    public  void loadCloudClient() {
-        IMqttAsyncClient mqttClient = Mqtt.getInstanceInternal();
-        log.info("--------------- clientID: {}", mqttClient.getClientId());
+    @Override
+    public void disconnected(MqttDisconnectResponse mqttDisconnectResponse) {
+        log.info("---------------------- disconnected ---------------");
+    }
 
-        IMqttAsyncClient mqttClientCloud = Mqtt.getCloudInstance();
-        log.info("--------------- mqttClientCloud: {}", mqttClientCloud.getClientId());
-
+    @Override
+    public void mqttErrorOccurred(MqttException e) {
+        log.info("---------------------- mqttErrorOccurred ---------------");
     }
 
     @Override
@@ -49,6 +48,7 @@ public class BridgerService implements IMqttMessageListener {
             log.info("=====1============= received: {} on topic {}", mqttMessage, topic);
 
             if (topic.startsWith(Constant.TOPIC_RESPONSE_PRE)) {
+                // the cloud received the msg => save COMPLETE to db
                 MilkCollect milkCollect = Converter.objectMapper.readValue(new String(mqttMessage.getPayload()), MilkCollect.class);
                 Long id = milkCollect.getId();
                 log.info("====3============ Cloud has received the id ---{}---", id);
@@ -61,10 +61,15 @@ public class BridgerService implements IMqttMessageListener {
                     Mqtt.controlUnSubscribe(Mqtt.getCloudInstance(), topic);
                     log.info("====6============ Unsubscribe ---{}---", topic);
                 } else {
-                    log.info(" Could not find the message id: {}", id);
+                    log.info(" Can not find the message id: {}", id);
                 }
-            } else  { // if (topic.equalsIgnoreCase("ThuMuaSua"))
+            } else  {
+                // if (topic.equalsIgnoreCase("ThuMuaSua"))
+                // 1. subscribe the response
+                // 2. publish to cloud
 //                MilkCollect milkCollect = Converter.getObjectMapper().readValue(new String(mqttMessage.getPayload()), MilkCollect.class);
+
+                // convert msg text to Obj
                 MilkCollect milkCollect = Converter.messageToDTO(new String(mqttMessage.getPayload()));
 
                 log.info("====4============== received: {} on topic {}", mqttMessage, topic);
@@ -75,9 +80,12 @@ public class BridgerService implements IMqttMessageListener {
                 if (id == null) {
                     return;
                 }
-                String stopic = Constant.TOPIC_RESPONSE_PRE + id + Constant.SPLASH + topic;
+                // response/id/ThuMuaSua
+                String stopic = Constant.TOPIC_RESPONSE_PRE + Constant.SPLASH + id + Constant.SPLASH + topic;
                 // listen the response
-                Mqtt.controlSubscribe(Mqtt.getCloudInstance(), stopic, this);
+                Mqtt.controlSubscribe(Mqtt.getCloudInstance(), stopic);
+
+                // object to json string
                 String json = Converter.getObjectMapper().writeValueAsString(milkCollect);
                 mqttMessage.setPayload(json.getBytes(StandardCharsets.UTF_8));
 
@@ -112,4 +120,20 @@ public class BridgerService implements IMqttMessageListener {
             log.info("====timeElapsed=={}==========", timeElapsed);
         }
     }
+
+    @Override
+    public void deliveryComplete(IMqttToken iMqttToken) {
+        log.info("---------------------- deliveryComplete ---------------");
+    }
+
+    @Override
+    public void connectComplete(boolean b, String s) {
+        log.info("---------------------- connectComplete ---------------");
+    }
+
+    @Override
+    public void authPacketArrived(int i, MqttProperties mqttProperties) {
+        log.info("---------------------- authPacketArrived ---------------");
+    }
+
 }
